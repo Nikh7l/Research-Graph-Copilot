@@ -1,0 +1,86 @@
+[
+  {
+    "id": "compare_retry_vs_structured",
+    "question": "Compare retry strategies and structured outputs for reducing tool-call failures.",
+    "search_mode": "comparative",
+    "expected_paper_ids": [
+      "aead260ab6c6e6814ceffe499a9b2c060981cf0c",
+      "6f2075670d6b339fc4918db1c863ef25fae96f42"
+    ],
+    "expected_relationships": ["PROPOSES", "SUPPORTS", "ABOUT"],
+    "expected_tools": ["search_papers", "compare_methods_structured", "get_relationship_counts"]
+  },
+  {
+    "id": "claims_for_structured_outputs",
+    "question": "What claims support structured outputs as a reliability technique?",
+    "search_mode": "entity",
+    "expected_paper_ids": [
+      "6f2075670d6b339fc4918db1c863ef25fae96f42",
+      "a004cbc64475cc01020e0ab0f3de056501927f8f"
+    ],
+    "expected_relationships": ["SUPPORTS", "ABOUT"],
+    "expected_tools": ["get_claims_for_method", "search_papers"]
+  },
+  {
+    "id": "path_atomix_to_retry",
+    "question": "Show the graph path between Atomix and retry strategies.",
+    "search_mode": "entity",
+    "expected_paper_ids": ["aead260ab6c6e6814ceffe499a9b2c060981cf0c"],
+    "expected_relationships": ["PROPOSES", "SUPPORTS"],
+    "expected_tools": ["get_graph_paths", "get_paper_neighborhood"]
+  },
+  {
+    "id": "diagnostic_papers",
+    "question": "Which papers diagnose tool invocation reliability failures?",
+    "search_mode": "theme",
+    "expected_paper_ids": [
+      "e594ccb2b9ceb4fc2a950a00699f67cf2311f3f1",
+      "65fce97ce070027d4f64e58a196d448935e5f4b7",
+      "07c32b60ff46f9edf9f745e2e2d027eda22d5a7d"
+    ],
+    "expected_relationships": ["ABOUT", "SUPPORTS"],
+    "expected_tools": ["get_topic_summary", "search_papers"]
+  },
+  {
+    "id": "mcp_benchmark_question",
+    "question": "Which benchmark papers in the corpus are directly about MCP tool use?",
+    "search_mode": "entity",
+    "expected_paper_ids": [
+      "153e3227cdc8e8b54034b6166a468bd751e117cc"
+    ],
+    "expected_relationships": ["ABOUT", "PROPOSES"],
+    "expected_tools": ["search_papers", "get_topic_summary"]
+  },
+  {
+    "id": "safety_audit_question",
+    "question": "Which authors are connected to papers auditing tool-call safety or agent failure modes?",
+    "search_mode": "theme",
+    "expected_paper_ids": [
+      "07c32b60ff46f9edf9f745e2e2d027eda22d5a7d",
+      "8fdb9eedea960eb06ad4947394fd8d97e568eeff"
+    ],
+    "expected_relationships": ["AUTHORED", "ABOUT"],
+    "expected_tools": ["search_papers", "get_relationship_counts"]
+  },
+  {
+    "id": "preexecution_guardrails",
+    "question": "What methods are linked to pre-execution checking or guardrails for tool calls?",
+    "search_mode": "entity",
+    "expected_paper_ids": [
+      "c67408b6affa8d47e7bd1cf82798eea8a59fde4c"
+    ],
+    "expected_relationships": ["PROPOSES", "ABOUT"],
+    "expected_tools": ["get_method_papers", "search_papers"]
+  },
+  {
+    "id": "date_bounded_changes",
+    "question": "What changed in tool-call reliability research between 2025-09-01 and 2026-03-22?",
+    "search_mode": "theme",
+    "expected_paper_ids": [
+      "6f2075670d6b339fc4918db1c863ef25fae96f42",
+      "aead260ab6c6e6814ceffe499a9b2c060981cf0c"
+    ],
+    "expected_relationships": ["ABOUT", "SUPPORTS", "PROPOSES"],
+    "expected_tools": ["get_topic_summary", "search_papers", "get_relationship_counts"]
+  }
+]

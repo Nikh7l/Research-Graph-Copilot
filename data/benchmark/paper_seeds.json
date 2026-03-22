@@ -1,0 +1,62 @@
+[
+  {
+    "semantic_scholar_id": "aead260ab6c6e6814ceffe499a9b2c060981cf0c",
+    "title": "Atomix: Timely, Transactional Tool Use for Reliable Agentic Workflows",
+    "reason": "Canonical retry and transactional tool-use paper for comparison demos",
+    "expected_methods": ["retry strategies", "tool calling"]
+  },
+  {
+    "semantic_scholar_id": "6f2075670d6b339fc4918db1c863ef25fae96f42",
+    "title": "Failure Makes the Agent Stronger: Enhancing Accuracy through Structured Reflection for Reliable Tool Interactions",
+    "reason": "Canonical structured reflection and repair paper",
+    "expected_methods": ["structured reflection", "structured outputs"]
+  },
+  {
+    "semantic_scholar_id": "07c32b60ff46f9edf9f745e2e2d027eda22d5a7d",
+    "title": "A Trajectory-Based Safety Audit of Clawdbot (OpenClaw)",
+    "reason": "Safety and failure-mode anchor paper for reliability evaluation",
+    "expected_methods": ["trajectory centric evaluation"]
+  },
+  {
+    "semantic_scholar_id": "8fdb9eedea960eb06ad4947394fd8d97e568eeff",
+    "title": "Who Tests the Testers? Systematic Enumeration and Coverage Audit of LLM Agent Tool Call Safety",
+    "reason": "Evaluation-focused benchmark paper for tool-call safety",
+    "expected_methods": ["evaluation", "tool calling"]
+  },
+  {
+    "semantic_scholar_id": "153e3227cdc8e8b54034b6166a468bd751e117cc",
+    "title": "MCPToolBench++: A Large Scale AI Agent Model Context Protocol MCP Tool Use Benchmark",
+    "reason": "Benchmark paper directly tied to MCP and tool use",
+    "expected_methods": ["model context protocol mcp", "tool calling"]
+  },
+  {
+    "semantic_scholar_id": "e594ccb2b9ceb4fc2a950a00699f67cf2311f3f1",
+    "title": "When Agents Fail to Act: A Diagnostic Framework for Tool Invocation Reliability in Multi-Agent LLM Systems",
+    "reason": "Diagnostic framework for tool invocation reliability",
+    "expected_methods": ["diagnostic framework"]
+  },
+  {
+    "semantic_scholar_id": "78ad81eb173b5ca712e602c8c3ef94be1a2896e5",
+    "title": "Gecko: A Simulation Environment with Stateful Feedback for Refining Agent Tool Calls",
+    "reason": "Stateful-feedback environment for refining tool calls",
+    "expected_methods": ["tool calling", "stateful feedback"]
+  },
+  {
+    "semantic_scholar_id": "c67408b6affa8d47e7bd1cf82798eea8a59fde4c",
+    "title": "AEGIS: No Tool Call Left Unchecked -- A Pre-Execution Firewall and Audit Layer for AI Agents",
+    "reason": "Guardrail and pre-execution audit paper for agent tool reliability",
+    "expected_methods": ["verification", "tool calling"]
+  },
+  {
+    "semantic_scholar_id": "65fce97ce070027d4f64e58a196d448935e5f4b7",
+    "title": "Butterfly Effects in Toolchains: A Comprehensive Analysis of Failed Parameter Filling in LLM Tool-Agent Systems",
+    "reason": "Failure-analysis paper for parameter filling errors",
+    "expected_methods": ["parameter filling", "tool calling"]
+  },
+  {
+    "semantic_scholar_id": "a004cbc64475cc01020e0ab0f3de056501927f8f",
+    "title": "Machine Learning as a Tool (MLAT): A Framework for Integrating Statistical ML Models as Callable Tools within LLM Agent Workflows",
+    "reason": "Structured-output and tool-use workflow paper for contrast cases",
+    "expected_methods": ["structured outputs", "tool calling"]
+  }
+]

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -90,7 +90,7 @@ class OpenRouterClient:
 
             response.raise_for_status()
             logger.info("  ✓ %s request succeeded", method)
-            return response.json()
+            return cast(dict[str, Any], response.json())
 
         # All retries exhausted
         raise httpx.TimeoutException(f"{method} failed after {MAX_RETRIES} attempts")
@@ -123,7 +123,8 @@ class OpenRouterClient:
             f"{self.base_url}/chat/completions",
             payload,
         )
-        return body["choices"][0]["message"]["content"]
+        content = body["choices"][0]["message"]["content"]
+        return cast(str, content)
 
     async def chat_json(
         self,
@@ -151,7 +152,8 @@ class OpenRouterClient:
             payload,
             timeout=30.0,
         )
-        return body["data"][0]["embedding"]
+        embedding = body["data"][0]["embedding"]
+        return cast(list[float], embedding)
 
     async def embed_batch(
         self,

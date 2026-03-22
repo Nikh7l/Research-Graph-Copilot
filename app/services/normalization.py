@@ -94,7 +94,8 @@ def merge_authors(
     """Merge two author lists, deduplicating by normalized name."""
     seen: dict[str, dict[str, str | None]] = {}
     for author in [*authors_a, *authors_b]:
-        key = normalize_author_name(author.get("name", "")).lower()
+        raw_name = author.get("name") or ""
+        key = normalize_author_name(raw_name).lower()
         if key and key not in seen:
             seen[key] = author
         elif key in seen and author.get("affiliation") and not seen[key].get("affiliation"):

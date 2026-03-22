@@ -104,7 +104,7 @@ class Neo4jGraphStore:
 
         with self.driver.session() as session:
             for paper in papers:
-                params = {
+                params: dict[str, Any] = {
                     "paper_id": paper.paper_id,
                     "title": paper.title,
                     "abstract": paper.abstract,
@@ -136,7 +136,7 @@ class Neo4jGraphStore:
 
         with self.driver.session() as session:
             for method in methods:
-                params = {
+                params: dict[str, Any] = {
                     "canonical_name": method.canonical_name,
                     "name": method.name,
                     "category": method.category,
@@ -163,7 +163,7 @@ class Neo4jGraphStore:
 
         with self.driver.session() as session:
             for claim in claims:
-                params = {
+                params: dict[str, Any] = {
                     "claim_id": claim.claim_id,
                     "statement": claim.statement,
                     "evidence_span": claim.evidence_span,

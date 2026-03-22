@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 class BenchmarkAssetsService:
@@ -13,9 +13,11 @@ class BenchmarkAssetsService:
     def get_seed_manifest(self) -> list[dict[str, Any]]:
         if not self.manifest_path.exists():
             return []
-        return json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        data = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        return cast(list[dict[str, Any]], data)
 
     def get_gold_questions(self) -> list[dict[str, Any]]:
         if not self.questions_path.exists():
             return []
-        return json.loads(self.questions_path.read_text(encoding="utf-8"))
+        data = json.loads(self.questions_path.read_text(encoding="utf-8"))
+        return cast(list[dict[str, Any]], data)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, cast
 
 import httpx
 
@@ -42,7 +42,7 @@ class SemanticScholarAdapter:
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             while len(all_results) < limit:
-                params = {
+                params: dict[str, str | int] = {
                     "query": query,
                     "limit": page_size,
                     "offset": offset,
@@ -85,7 +85,7 @@ class SemanticScholarAdapter:
                     params={"fields": self.FIELDS},
                 )
                 response.raise_for_status()
-                return response.json()
+                return cast(dict[str, Any], response.json())
             except httpx.HTTPStatusError:
                 logger.warning("Failed to fetch paper %s", paper_id)
                 return None

@@ -203,15 +203,17 @@ class ExtractionService:
             )
 
         claims: list[Claim] = []
-        for raw in raw_claims:
-            claim_id = sha1(f"{paper.paper_id}:{raw.statement}".encode()).hexdigest()[:16]
-            method_name = canonicalize_method(raw.method_name) if raw.method_name else None
+        for raw_claim in raw_claims:
+            claim_id = sha1(f"{paper.paper_id}:{raw_claim.statement}".encode()).hexdigest()[:16]
+            method_name = (
+                canonicalize_method(raw_claim.method_name) if raw_claim.method_name else None
+            )
             claims.append(
                 Claim(
                     claim_id=claim_id,
-                    statement=raw.statement,
-                    evidence_span=raw.evidence_span,
-                    confidence=raw.confidence,
+                    statement=raw_claim.statement,
+                    evidence_span=raw_claim.evidence_span,
+                    confidence=raw_claim.confidence,
                     method_name=method_name,
                     paper_id=paper.paper_id,
                     provenance=Provenance(
@@ -219,8 +221,8 @@ class ExtractionService:
                         source_id=paper.paper_id,
                         extracted_at=timestamp,
                         extraction_method="llm_few_shot",
-                        confidence=raw.confidence,
-                        text_span=raw.evidence_span,
+                        confidence=raw_claim.confidence,
+                        text_span=raw_claim.evidence_span,
                     ),
                 )
             )

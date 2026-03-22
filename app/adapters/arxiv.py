@@ -30,7 +30,7 @@ class ArxivAdapter:
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             while len(all_results) < max_results:
-                params = {
+                params: dict[str, str | int] = {
                     "search_query": f"all:{query}",
                     "start": start,
                     "max_results": page_size,

@@ -5,7 +5,7 @@ import os
 import sys
 from collections.abc import Sequence
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 from mcp.client.session import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -119,6 +119,10 @@ class AgentClientService:
         start_date: str | None,
         end_date: str | None,
     ) -> dict[str, Any]:
+        llm_client = self.llm_client
+        if llm_client is None:
+            return self._default_plan(question, search_mode, start_date, end_date)
+
         tools = await session.list_tools()
         available_tool_names = {tool.name for tool in tools.tools}
         tool_descriptions = [
@@ -135,7 +139,7 @@ class AgentClientService:
             "dates": {"start_date": start_date, "end_date": end_date},
             "tools": tool_descriptions,
         }
-        raw_plan = await self.llm_client.chat_json(
+        raw_plan = await llm_client.chat_json(
             system_prompt=TOOL_PLANNER_PROMPT,
             user_prompt=json.dumps(payload, indent=2),
             temperature=0.1,
@@ -147,7 +151,8 @@ class AgentClientService:
 
         calls = parsed.get("calls") or []
         filtered_calls = [
-            call for call in calls
+            call
+            for call in calls
             if isinstance(call, dict)
             and call.get("tool_name") in available_tool_names
             and isinstance(call.get("arguments"), dict)
@@ -259,7 +264,10 @@ class AgentClientService:
         if not text_parts:
             return {}
         try:
-            return json.loads("\n".join(text_parts))
+            parsed = json.loads("\n".join(text_parts))
+            if isinstance(parsed, dict):
+                return cast(dict[str, Any], parsed)
+            return {"content": parsed}
         except json.JSONDecodeError:
             return {"text": "\n".join(text_parts)}
 
@@ -279,9 +287,11 @@ class AgentClientService:
             if isinstance(claim, dict):
                 evidence.append(
                     EvidenceItem(
-                        title=claim.get(
-                            "title",
-                            claim.get("paper_title", claim.get("paper_id", "Claim")),
+                        title=str(
+                            claim.get(
+                                "title",
+                                claim.get("paper_title", claim.get("paper_id", "Claim")),
+                            )
                         ),
                         paper_id=claim.get("paper_id", ""),
                         citation=(
@@ -307,8 +317,7 @@ class AgentClientService:
                         title=paper.get("title", ""),
                         paper_id=paper.get("paper_id", ""),
                         citation=(
-                            f"{paper.get('title', '')} "
-                            f"({paper.get('publication_date', 'n.d.')})"
+                            f"{paper.get('title', '')} ({paper.get('publication_date', 'n.d.')})"
                         ),
                     )
                 )

@@ -76,18 +76,23 @@ class RetrievalService:
         end_date: str | None,
     ) -> QueryResponse:
         """Entity search: vector similarity → graph neighborhood → synthesis."""
+        llm_client = self.llm_client
+        graph_store = self.graph_store
+        if llm_client is None or graph_store is None:
+            return self._placeholder_response()
+
         # 1. Embed the query
-        query_embedding = await self.llm_client.embed(question)
+        query_embedding = await llm_client.embed(question)
 
         # 2. Vector search across papers, methods, and claims
-        paper_hits = self.graph_store.vector_search_papers(query_embedding, top_k=8)
-        method_hits = self.graph_store.vector_search_methods(query_embedding, top_k=5)
-        claim_hits = self.graph_store.vector_search_claims(query_embedding, top_k=8)
+        paper_hits = graph_store.vector_search_papers(query_embedding, top_k=8)
+        method_hits = graph_store.vector_search_methods(query_embedding, top_k=5)
+        claim_hits = graph_store.vector_search_claims(query_embedding, top_k=8)
 
         # 3. Get graph neighborhoods for top papers
         neighborhoods = []
         for hit in paper_hits[:5]:
-            neighborhood = self.graph_store.get_paper_neighborhood(hit["paper_id"])
+            neighborhood = graph_store.get_paper_neighborhood(hit["paper_id"])
             if neighborhood:
                 neighborhoods.append(neighborhood)
 
@@ -113,12 +118,16 @@ class RetrievalService:
         end_date: str | None,
     ) -> QueryResponse:
         """Theme search: date-bounded graph traversal → thematic synthesis."""
+        graph_store = self.graph_store
+        if graph_store is None:
+            return self._placeholder_response()
+
         if not start_date or not end_date:
             start_date = start_date or "2025-01-01"
             end_date = end_date or "2026-12-31"
 
         # Get all papers in the date range with their methods and claims
-        papers_data = self.graph_store.get_papers_by_date_range(start_date, end_date)
+        papers_data = graph_store.get_papers_by_date_range(start_date, end_date)
 
         # Build context grouped by method
         context = self._build_theme_context(papers_data)
@@ -150,6 +159,11 @@ class RetrievalService:
 
     async def _comparative_search(self, question: str) -> QueryResponse:
         """Comparative search: find two methods and compare their evidence."""
+        llm_client = self.llm_client
+        graph_store = self.graph_store
+        if llm_client is None or graph_store is None:
+            return self._placeholder_response()
+
         # Ask LLM to extract the two methods being compared
         extract_prompt = (
             "Extract exactly two method/approach names being compared in this question. "
@@ -157,7 +171,7 @@ class RetrievalService:
             "Use lowercase, concise names."
         )
         try:
-            methods_json = await self.llm_client.chat_json(extract_prompt, question)
+            methods_json = await llm_client.chat_json(extract_prompt, question)
             import json
 
             methods = json.loads(methods_json)
@@ -177,7 +191,7 @@ class RetrievalService:
         method_b = canonicalize_method(method_b)
 
         # Get comparative data from graph
-        comparative_data = self.graph_store.get_comparative_data(method_a, method_b)
+        comparative_data = graph_store.get_comparative_data(method_a, method_b)
 
         context = self._build_comparative_context(method_a, method_b, comparative_data)
         answer = await self._synthesize(question, context)
@@ -303,6 +317,10 @@ class RetrievalService:
 
     async def _synthesize(self, question: str, context: str) -> str:
         """Synthesize an answer from context using the LLM."""
+        llm_client = self.llm_client
+        if llm_client is None:
+            return self._placeholder_response().answer
+
         if not context.strip():
             return (
                 "No relevant evidence found in the corpus. "
@@ -310,7 +328,7 @@ class RetrievalService:
             )
 
         user_prompt = f"Question: {question}\n\nEvidence:\n{context}"
-        return await self.llm_client.chat(
+        return await llm_client.chat(
             system_prompt=SYNTHESIS_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             temperature=0.2,

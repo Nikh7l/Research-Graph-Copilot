@@ -221,6 +221,10 @@ class PipelineService:
 
     async def _embed_papers(self, papers: list[Paper]) -> list[Paper]:
         """Generate embeddings for papers."""
+        llm_client = self.llm_client
+        if llm_client is None:
+            return papers
+
         texts = []
         for paper in papers:
             text = paper.title
@@ -231,7 +235,7 @@ class PipelineService:
         if not texts:
             return papers
 
-        embeddings = await self.llm_client.embed_batch(texts)
+        embeddings = await llm_client.embed_batch(texts)
         for paper, embedding in zip(papers, embeddings, strict=True):
             paper.embedding = embedding
 
@@ -240,6 +244,10 @@ class PipelineService:
 
     async def _embed_methods(self, methods: list[Method]) -> list[Method]:
         """Generate embeddings for methods."""
+        llm_client = self.llm_client
+        if llm_client is None:
+            return methods
+
         texts = []
         for method in methods:
             text = method.canonical_name
@@ -250,7 +258,7 @@ class PipelineService:
         if not texts:
             return methods
 
-        embeddings = await self.llm_client.embed_batch(texts)
+        embeddings = await llm_client.embed_batch(texts)
         for method, embedding in zip(methods, embeddings, strict=True):
             method.embedding = embedding
 
@@ -259,12 +267,16 @@ class PipelineService:
 
     async def _embed_claims(self, claims: list[Claim]) -> list[Claim]:
         """Generate embeddings for claims."""
+        llm_client = self.llm_client
+        if llm_client is None:
+            return claims
+
         texts = [claim.statement for claim in claims]
 
         if not texts:
             return claims
 
-        embeddings = await self.llm_client.embed_batch(texts)
+        embeddings = await llm_client.embed_batch(texts)
         for claim, embedding in zip(claims, embeddings, strict=True):
             claim.embedding = embedding
 
@@ -279,18 +291,22 @@ class PipelineService:
         topic: str,
     ) -> None:
         """Load all data into Neo4j with relationships."""
-        self.graph_store.ensure_schema()
+        graph_store = self.graph_store
+        if graph_store is None:
+            return
 
-        self.graph_store.upsert_topic(name=topic)
-        self.graph_store.upsert_papers(papers)
-        self.graph_store.upsert_methods(methods)
-        self.graph_store.upsert_claims(claims)
+        graph_store.ensure_schema()
 
-        self.graph_store.create_authored_edges(papers)
-        self.graph_store.create_proposes_edges(papers, methods)
-        self.graph_store.create_supports_edges(claims)
-        self.graph_store.create_about_edges(papers, topic)
-        self.graph_store.create_citation_edges(papers)
+        graph_store.upsert_topic(name=topic)
+        graph_store.upsert_papers(papers)
+        graph_store.upsert_methods(methods)
+        graph_store.upsert_claims(claims)
 
-        self.graph_store.ensure_vector_indexes()
+        graph_store.create_authored_edges(papers)
+        graph_store.create_proposes_edges(papers, methods)
+        graph_store.create_supports_edges(claims)
+        graph_store.create_about_edges(papers, topic)
+        graph_store.create_citation_edges(papers)
+
+        graph_store.ensure_vector_indexes()
         logger.info("Graph loaded with all nodes and relationships")

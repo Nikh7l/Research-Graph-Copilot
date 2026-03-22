@@ -1,30 +1,94 @@
 # AI Research Intelligence Copilot
 
-Portfolio-grade research intelligence tool focused on graph-backed research retrieval. The default corpus is agent tool-call reliability, but the ingestion pipeline now supports custom user-selected topics, date windows, and paper budgets. The app extracts methods and claims, persists the graph in Neo4j, exposes domain-safe MCP tools, and serves a Streamlit UI plus Claude Desktop compatibility.
+This project solves a simple problem: teams tracking fast-moving AI research do not just need paper search, they need a way to trace **papers, methods, claims, and topics** across a connected knowledge base and ask evidence-backed questions over that graph.
 
-The corpus supports two tracks:
-- a curated benchmark slice for stable demos and gold evaluation
-- a latest-paper slice for fresh ingestion
+Standard keyword or vector search can find relevant abstracts. It is much weaker at questions like:
+- Which papers support a method and what claims are connected to it?
+- How are two methods related through shared topic structure?
+- What graph path links a paper to a method or claim?
 
-## Stack
+This app solves that by building a **Neo4j knowledge graph** from a research corpus, exposing deterministic retrieval and path tools through **MCP**, and letting an LLM client synthesize answers from those tool results.
 
-- Python 3.12 + FastAPI
-- OpenRouter for chat and embeddings
-- Neo4j for graph storage + vector indexes
-- Custom hybrid retrieval layer (entity, theme, comparative search) via `neo4j-graphrag`
-- MCP server for safe tool access
-- Streamlit frontend
+## What The Project Does
+
+- Ingests papers from **Semantic Scholar** and **arXiv**
+- Extracts methods and claims with **OpenRouter**
+- Stores papers, authors, methods, claims, topics, and edges in **Neo4j**
+- Exposes deterministic graph tools through a custom **MCP server**
+- Supports:
+  - a custom **Streamlit** app
+  - **Claude Desktop** via MCP stdio
+- Provides a seeded benchmark corpus plus gold evaluation questions
+
+## Problem
+
+Research teams, AI engineers, and consultants need to answer questions that are relational, not just semantic:
+- Compare two methods using linked evidence
+- See which claims connect to a method
+- Trace a path from a paper to a method
+- Summarize a bounded topic over a date range
+
+Without a graph layer, these become brittle prompt-engineering exercises over chunks of text.
+
+## Solution
+
+The system is split into two runtime layers:
+
+- **MCP server**
+  - deterministic graph and retrieval tools only
+  - no runtime answer generation
+- **LLM client**
+  - uses OpenRouter for planning and answer synthesis
+  - calls MCP tools to fetch structured evidence
+
+This makes the architecture easy to explain:
+- Neo4j is the graph system of record
+- MCP is the tool boundary
+- the LLM client is the reasoning layer
+
+## Core Tools And Stack
+
+- **Python / FastAPI**
+- **Neo4j**
+- **OpenRouter**
+- **MCP**
+- **Streamlit**
+- **Semantic Scholar API**
+- **arXiv API**
+
+## Main Capabilities
+
+- Topic-selectable ingestion
+- Date-bounded corpus building
+- Method and claim extraction
+- Graph-backed retrieval
+- MCP tool access for Claude Desktop
+- Benchmark questions with expected papers, tools, and relationships
+- Interactive graph viewer
+
+## Current MCP Tools
+
+- `search_papers`
+- `get_topic_summary`
+- `get_method_papers`
+- `get_claims_for_method`
+- `get_paper_neighborhood`
+- `compare_methods_structured`
+- `get_graph_paths`
+- `get_relationship_counts`
+- `get_corpus_stats`
 
 ## Local Setup
 
-1. Copy `.env.example` to `.env` and provide `OPENROUTER_API_KEY`.
-2. Start Neo4j:
+1. Copy `.env.example` to `.env`
+2. Add your `OPENROUTER_API_KEY`
+3. Start Neo4j:
 
 ```bash
 docker compose up -d
 ```
 
-3. Install backend deps:
+4. Install dependencies:
 
 ```bash
 uv venv
@@ -32,55 +96,23 @@ source .venv/bin/activate
 uv pip install -e ".[dev]"
 ```
 
-4. Run the API:
+5. Start the API:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-5. Run the Streamlit UI:
+6. Start the UI:
 
 ```bash
 streamlit run streamlit_app/app.py
 ```
 
-## Repo Layout
+## Ingestion
 
-- `docs/` planning, features, tasks, schema, evaluation
-- `app/` backend services, adapters, API, MCP
-- `streamlit_app/` Streamlit UI
-- `tests/` focused unit tests
-- `data/` local raw, processed, and index artifacts
-- `.github/workflows/` CI pipeline
+You can ingest the default benchmark topic or any custom topic.
 
-## v1 Scope
-
-- 100 papers by default, configurable per ingestion run
-- default topic is `agent tool-call reliability`, but the pipeline supports custom topics
-- date range defaults to 2025-01-01 through 2026-03-22
-- no GitHub or repo ingestion yet
-- benchmark and hybrid modes are intended for the default topic
-- custom topics automatically fall back to `latest` when benchmark seeds would be unrelated
-
-## Key Questions
-
-- What changed in agent tool-call reliability between 2025-01-01 and 2026-03-22?
-- Which methods for reducing tool-call errors appear most often in recent papers?
-- Which papers support structured tool outputs as a reliability technique?
-- Generate a briefing on recent approaches to preventing tool-call failures.
-- What changed in my chosen topic over a specific date range?
-- Which papers and methods dominate a custom topic corpus?
-
-## First Test Flow
-
-1. Start Neo4j with Docker.
-2. Add `OPENROUTER_API_KEY` to `.env`.
-3. Start the API and call `POST /api/ingest/run` with your chosen topic.
-4. Inspect `data/raw/runs/<run_id>` and `data/processed/runs/<run_id>`.
-5. Use `GET /api/topics/agent-tool-call-reliability` and `POST /api/query`.
-6. Connect Claude Desktop to the MCP server once the Python dependencies are installed.
-
-Example ingestion request:
+Example:
 
 ```bash
 curl -X POST http://localhost:8000/api/ingest/run \
@@ -94,45 +126,54 @@ curl -X POST http://localhost:8000/api/ingest/run \
   }'
 ```
 
-The response now includes:
-- `run_id`
-- `corpus_mode`
-- `benchmark_seeded_papers`
-- `cached_files`
-
-## Benchmark Assets
-
-- `data/benchmark/paper_seeds.json` contains curated Semantic Scholar paper IDs for the stable benchmark slice.
-- `data/benchmark/gold_questions.json` contains demo and evaluation questions with expected evidence targets.
-- `GET /api/benchmark/papers` returns the benchmark manifest.
-- `GET /api/evaluation/questions` returns the gold question set.
-
-## Claude Desktop MCP
-
-The backend exposes a custom MCP server with narrow tools. Use the stdio transport entrypoint in `app/services/mcp_server.py` once dependencies are installed and the graph has data.
-
-## Topic-Selectable Ingestion
-
-You can run the ingestion pipeline from either:
-- the Streamlit `⚙️ Pipeline` page
-- `POST /api/ingest/run`
-
-Supported ingestion parameters:
+Supported fields:
 - `topic`
 - `start_date`
 - `end_date`
 - `target_papers`
 - `corpus_mode`: `auto`, `latest`, `benchmark`, `hybrid`
 
-Behavior notes:
-- `auto` keeps the benchmark/hybrid workflow for the default topic and switches custom topics to `latest`
-- `benchmark` and `hybrid` use the curated benchmark seed manifest
-- each ingestion run writes raw and processed artifacts to a run-specific directory so multiple topics do not overwrite each other
+Run artifacts are written to:
+- `data/raw/runs/<run_id>`
+- `data/processed/runs/<run_id>`
 
-## CI/CD
+## Benchmark Assets
 
-GitHub Actions runs on every push to `main` and on pull requests:
-- **Lint**: `ruff check` + `ruff format --check`
-- **Type-check**: `mypy app/`
-- **Test**: `pytest tests/ -v`
-- **Build**: `pip install -e ".[dev]"` verification
+- `data/benchmark/paper_seeds.json`
+- `data/benchmark/gold_questions.json`
+
+API endpoints:
+- `GET /api/benchmark/papers`
+- `GET /api/evaluation/questions`
+
+## Claude Desktop
+
+Claude Desktop acts as the MCP client/host. This repo provides the MCP server.
+
+Run the server entrypoint with:
+
+```bash
+python -m app.mcp_runner
+```
+
+Then point Claude Desktop at that command using stdio transport.
+
+## Verification
+
+Local checks used in this repo:
+
+```bash
+./.venv/bin/ruff check app tests streamlit_app
+./.venv/bin/pytest tests -q
+PYTHONPYCACHEPREFIX=.pycache-local python3 -m compileall app tests streamlit_app
+```
+
+## Status
+
+This is a working prototype with:
+- a functioning Neo4j graph
+- a real MCP server
+- a custom app client
+- Claude Desktop interoperability
+
+The strongest current use case is **evidence-backed research analysis over a graph of papers, methods, claims, and topics**.
